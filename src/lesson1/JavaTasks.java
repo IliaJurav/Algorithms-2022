@@ -1,6 +1,17 @@
 package lesson1;
-
 import kotlin.NotImplementedError;
+import lesson1.Sorts;
+
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @SuppressWarnings("unused")
 public class JavaTasks {
@@ -34,9 +45,18 @@ public class JavaTasks {
      *
      * В случае обнаружения неверного формата файла бросить любое исключение.
      */
-    static public void sortTimes(String inputName, String outputName) {
-        throw new NotImplementedError();
-    }
+    static public void sortTimes(String inputName, String outputName) throws IOException, ParseException {
+        List<Integer> times = new ArrayList<>();
+        DateFormat df = new SimpleDateFormat("hh:mm:ss aa");
+        String line;
+        try (Scanner sc = new Scanner(new File(inputName))){
+            while (sc.hasNextLine()){
+                times.add((int) df.parse(sc.nextLine()).getTime());
+            }
+        }
+        times.sort(Integer::compareTo);
+        Files.write(Path.of(outputName), (Iterable<String>) times.stream().map(df::format)::iterator);
+    } // Трудоёмксоть - O(N*log(N)); Ресурсоёмкость - O(N)
 
     /**
      * Сортировка адресов
@@ -64,9 +84,27 @@ public class JavaTasks {
      *
      * В случае обнаружения неверного формата файла бросить любое исключение.
      */
-    static public void sortAddresses(String inputName, String outputName) {
-        throw new NotImplementedError();
+     static public void sortAddresses(String inputName, String outputName) throws IOException {
+        Comparator<String> byAddress = Comparator.comparing((String s) -> s.split(" ")[0])
+                .thenComparing((String s) -> Integer.parseInt(s.split(" ")[1]));
+
+        try (Stream<String> lines = Files.lines(Path.of(inputName))) {
+            Map<String, TreeSet<String>> addresses = lines
+                    .map(line -> line.split(" - "))
+                    .collect(Collectors.groupingBy(s -> s[1],
+                            () -> new TreeMap<>(byAddress), Collectors.mapping(s -> s[0],
+                                    Collectors.toCollection(TreeSet::new))));
+
+            try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputName))) {
+                for(Map.Entry<String, TreeSet<String>> e:addresses.entrySet()) {
+                    writer.write(e.getKey()+ " - " + String.join(", ", e.getValue()));
+                    writer.newLine();
+                }
+            }
+        }
+
     }
+    // Трудоемкость - O(nlogn); Ресурсоемкость O(n)
 
     /**
      * Сортировка температур
@@ -98,9 +136,28 @@ public class JavaTasks {
      * 99.5
      * 121.3
      */
-    static public void sortTemperatures(String inputName, String outputName) {
-        throw new NotImplementedError();
+
+    static public void sortTemperatures(String inputName, String outputName) throws IOException {
+        ArrayList<Integer> entries = new ArrayList<>();
+
+        try (BufferedReader file = Files.newBufferedReader(Paths.get(inputName))) {
+            String inp;
+            while ((inp = file.readLine()) != null) {
+                entries.add(((int) (Double.parseDouble(inp) * 10)) + 2730);
+            }
+        }
+        int[] entriesArr = entries.stream().mapToInt(i -> i).toArray();
+
+        entriesArr = Sorts.countingSort(entriesArr, 7730);
+
+        try (BufferedWriter out = Files.newBufferedWriter(Paths.get(outputName))) {
+            for (int value : entriesArr) {
+                out.write(String.valueOf((value - 2730) / 10.0));
+                out.newLine();
+            }
+        }
     }
+    //Трудоемкость: O(N + K) - Обработка данных - O(N), сортировка - O(N + K); Ресурсоемкость: O(K)
 
     /**
      * Сортировка последовательности
@@ -131,9 +188,52 @@ public class JavaTasks {
      * 2
      * 2
      */
-    static public void sortSequence(String inputName, String outputName) {
-        throw new NotImplementedError();
+
+    static public void sortSequence(String inputName, String outputName) throws IOException {
+        try (FileReader fileReader = new FileReader(inputName)) {
+            try (FileWriter fileWriter = new FileWriter(outputName)) {
+                try (BufferedReader bufferedReader = new BufferedReader(fileReader)) {
+                    try (BufferedWriter bufferedWriter = new BufferedWriter(fileWriter)) {
+                        String line;
+                        int minimum = Integer.MAX_VALUE;
+                        int count = 0;
+                        HashMap<Integer, Integer> result = new HashMap<>();
+                        LinkedList<Integer> res = new LinkedList<>();
+                        while ((line = bufferedReader.readLine()) != null) {
+                            int num = Integer.parseInt(line);
+                            res.add(num);
+                            int c = 1;
+                            if (result.containsKey(num))
+                                c += result.getOrDefault(num,0);
+                            result.put(num,c);
+
+                            if (count < c) {
+                                count = c;
+                                minimum = num;
+                            } else {
+                                if (count == c)
+                                    if (minimum > num)
+                                        minimum = num;
+                            }
+
+                        }
+
+                        for (Integer r : res)
+                            if (r != minimum) {
+                                bufferedWriter.write(r.toString());
+                                bufferedWriter.newLine();
+                            }
+                        String mm = minimum +"\n";
+                        while (count > 0) {
+                            bufferedWriter.write(mm);
+                            count--;
+                        }
+                    }
+                }
+            }
+        }
     }
+    // Трудоемкость - O(n); Ресурсоемкость O(n)
 
     /**
      * Соединить два отсортированных массива в один
@@ -150,6 +250,19 @@ public class JavaTasks {
      * Результат: second = [1 3 4 9 9 13 15 20 23 28]
      */
     static <T extends Comparable<T>> void mergeArrays(T[] first, T[] second) {
-        throw new NotImplementedError();
+        int i = 0;
+        int j = first.length;
+        int k = 0;
+        while (i < first.length && j < second.length){
+            if (first[i].compareTo(second[j]) < 0){
+                second[k++] = first[i++];
+            } else {
+                second[k++] = second[j++];
+            }
+        }
+        while (i < first.length) second[k++] = first[i++];
+        while (j < second.length) second[k++] = second[j++];
     }
 }
+// Трудоемкость - O(n); Ресурсоемкость O(1)
+

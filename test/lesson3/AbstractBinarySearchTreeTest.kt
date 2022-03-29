@@ -328,13 +328,14 @@ abstract class AbstractBinarySearchTreeTest {
         val random = Random()
         for (iteration in 1..100) {
             val initialSet = create()
-            val fromElement = random.nextInt(50)
+            val fromElement = random.nextInt(40)
             val fromFromElement = fromElement + random.nextInt(10)
-            val toElement = random.nextInt(50) + 50
+            val toElement = random.nextInt(40) + 60
             val toToElement = toElement - random.nextInt(10)
+            println("Checking if the subset from $fromElement to $toElement (nested $fromFromElement..$toToElement) is a valid view of the initial set...")
             val subSet = initialSet.subSet(fromElement, toElement)
             val subSubSet = subSet.subSet(fromFromElement, toToElement)
-            println("Checking if the subset from $fromElement to $toElement (nested $fromFromElement..$toToElement) is a valid view of the initial set...")
+            //println("Checking if the subset from $fromElement to $toElement (nested $fromFromElement..$toToElement) is a valid view of the initial set...")
             var allElementCounter = 0
             var validElementCounter = 0
             for (i in 1..50) {
