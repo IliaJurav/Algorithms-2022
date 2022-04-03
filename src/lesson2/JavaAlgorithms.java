@@ -99,58 +99,6 @@ public class JavaAlgorithms {
      * Если имеется несколько самых длинных общих подстрок одной длины,
      * вернуть ту из них, которая встречается раньше в строке first.
      */
-    static public String longestCommonSubstring2(String first, String second) {
-        int maxk = 0;
-        int indx = 0;
-        for (int i = 0; i + maxk < first.length() + second.length() - 1; i++) {
-            int i1 = 0;
-            if (i >= second.length()) i1 = i - second.length() + 1;
-            int i2 = second.length() - i - 1;
-            if (i2 < 0) i2 = 0;
-            int k = 0;
-            int j;
-            i2 -= i1;
-            for (j = i1; j + maxk - k < first.length() && j + i2 < second.length(); j++) {
-                if (first.charAt(j) == second.charAt(j + i2)) {
-                    k++;
-                } else {
-                    if (k > maxk) {
-                        maxk = k;
-                        indx = j - k;
-                    }
-                    k = 0;
-                }
-            }
-            if (k > maxk) {
-                maxk = k;
-                indx = first.length() - k;
-            }
-
-        }
-        if (maxk == 0) return "";
-        return first.substring(indx, indx + maxk);
-    }
-
-    static public String longestCommonSubstring3(String first, String second) {
-        int maxk = 0;
-        int indx = 0;
-        for (int i = 0; i + maxk < first.length(); i++) {
-            for (int j = 0; j + maxk < second.length(); j++)
-                if (first.charAt(i) == second.charAt(j)) {
-                    int k;
-                    for (k = 1; k + i < first.length() && j + k < second.length(); k++) {
-                        if (first.charAt(k + i) != second.charAt(k + j)) break;
-                    }
-                    if (k > maxk) {
-                        maxk = k;
-                        indx = i;
-                    }
-                    j += k;
-                }
-        }
-        if (maxk == 0) return "";
-        return first.substring(indx, indx + maxk);
-    }
 
     static public String longestCommonSubstring(String first, String second) {
         int maxk = 0;
@@ -174,12 +122,8 @@ public class JavaAlgorithms {
         if (maxk == 0) return "";
         return first.substring(indx, indx + maxk);
     }
-    //
-//    public static void main(String[] aa) {
-//        System.out.println(longestCommonSubstring("213000000000000000223", "21340012823456789223"));
-//        //System.out.println(longestCommonSubstring2("ОБСЕРВАТОРИЯ", "КОНСЕРВАТОРЫ"));
-//
-//    }
+    // Трудоемкость - O(n1*n2)
+    // n1 - длина первой строки, n2 - длина второй строки
 
     /**
      * Число простых чисел в интервале
@@ -191,7 +135,7 @@ public class JavaAlgorithms {
      * Справка: простым считается число, которое делится нацело только на 1 и на себя.
      * Единица простым числом не считается.
      * Время: O(n*Log(n))
-     * Память: S(n)
+     * Память: O(n)
      */
     static public int calcPrimesNumber(int limit) {
         if (limit <= 1) return 0;

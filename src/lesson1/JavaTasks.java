@@ -138,7 +138,7 @@ public class JavaTasks {
      */
 
     static public void sortTemperatures(String inputName, String outputName) throws IOException {
-        ArrayList<Integer> entries = new ArrayList<>();
+        List<Integer> entries = new ArrayList<>();
 
         try (BufferedReader file = Files.newBufferedReader(Paths.get(inputName))) {
             String inp;
@@ -190,10 +190,10 @@ public class JavaTasks {
      */
 
     static public void sortSequence(String inputName, String outputName) throws IOException {
-        try (FileReader fileReader = new FileReader(inputName)) {
-            try (FileWriter fileWriter = new FileWriter(outputName)) {
-                try (BufferedReader bufferedReader = new BufferedReader(fileReader)) {
-                    try (BufferedWriter bufferedWriter = new BufferedWriter(fileWriter)) {
+        try (FileReader fileReader = new FileReader(inputName);
+             FileWriter fileWriter = new FileWriter(outputName);
+             BufferedReader bufferedReader = new BufferedReader(fileReader);
+             BufferedWriter bufferedWriter = new BufferedWriter(fileWriter)) {
                         String line;
                         int minimum = Integer.MAX_VALUE;
                         int count = 0;
@@ -228,9 +228,6 @@ public class JavaTasks {
                             bufferedWriter.write(mm);
                             count--;
                         }
-                    }
-                }
-            }
         }
     }
     // Трудоемкость - O(n); Ресурсоемкость O(n)

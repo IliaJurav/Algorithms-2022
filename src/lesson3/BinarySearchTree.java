@@ -242,23 +242,22 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
          *
          * Средняя
          */
-
+        // Центрированный обход
         @Override
         public T next() {
-            if (hasNext()) {
-                parent = current;
-                current = stack.pop();
-                if (current == root) parent = null;
-                if (!stack.empty()) {
-                    Node <T> previous = stack.peek();
-                    if ((previous.left != null && previous.left.value.equals(current.value))
-                            || (previous.right != null && previous.right.value.equals(current.value)))
-                        parent = previous;
-                }
-                if (current.right != null) fillStack(current.right);
-                removed = false;
-                return current.value;
-            } else throw new NoSuchElementException();
+            if (!hasNext()) throw new NoSuchElementException();
+            parent = current;
+            current = stack.pop();
+            if (current == root) parent = null;
+            if (!stack.empty()) {
+                Node<T> previous = stack.peek();
+                if ((previous.left != null && previous.left.value.equals(current.value))
+                        || (previous.right != null && previous.right.value.equals(current.value)))
+                    parent = previous;
+            }
+            if (current.right != null) fillStack(current.right);
+            removed = false;
+            return current.value;
         } // Трудоёмксоть - O(N); Ресурсоёмкость - O(N)
 
         private void fillStack (Node<T> start) {
@@ -283,11 +282,10 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
 
         @Override
         public void remove() {
-            if (!removed) {
-                BinarySearchTree.this.remove(current, parent);
-                removed = true;
-            } else throw new IllegalStateException();
-        } // Трудоёмксоть - O(log(N)); Ресурсоёмкость - O(N)
+            if (removed) throw new IllegalStateException();
+            BinarySearchTree.this.remove(current, parent);
+            removed = true;
+        } // Трудоёмксоть - O(log(N)), в худшем O(N); Ресурсоёмкость - O(N)
     }
 
     /**
@@ -349,6 +347,7 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
     }
 
     private void fillSubSet (TreeSet<T> set, T fromElement, T toElement) {
+        set.clear();
         for (T value : this) {
             if (value.compareTo(fromElement) >= 0 && value.compareTo(toElement) < 0) set.add(value);
         }
