@@ -2,8 +2,7 @@ package lesson6;
 
 import kotlin.NotImplementedError;
 
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @SuppressWarnings("unused")
 public class JavaGraphTasks {
@@ -94,33 +93,91 @@ public class JavaGraphTasks {
      * Если на входе граф с циклами, бросить IllegalArgumentException
      */
     public static Set<Graph.Vertex> largestIndependentVertexSet(Graph graph) {
-        throw new NotImplementedError();
+
+    //Трудоемкость - O(n), n - размер графа
+    //Ресурсоемкость - O(n), n -размер графа
+    isCyclic(graph);
+    Set<Graph.Vertex> vertices = graph.getVertices();
+    Set<Graph.Vertex> result = new HashSet<>(vertices);
+        for (Graph.Vertex vertex : vertices) {
+        if (!result.contains(vertex)) continue;
+        Set<Graph.Vertex> neighbours = graph.getNeighbors(vertex);
+        neighbours.forEach(result::remove);
+    }
+        return result;
+}
+
+    private static void isCyclic(Graph graph) {
+        // Трудоемкость  - O(n*n)?
+        //Ресурсоемкость - O(n) , n - размер графа
+        Set<Graph.Vertex> vertices = graph.getVertices();
+        Set<Graph.Edge> visited = new HashSet<>();
+        Map<Graph.Vertex ,Graph.Edge> rootEdges;
+        Set<Graph.Edge> previous = null;
+        for (Graph.Vertex vertex: vertices) {
+            visited.clear();
+            dfs(visited,vertex,null, graph);
+        }
     }
 
-    /**
-     * Наидлиннейший простой путь.
-     * Сложная
-     *
-     * Дан граф (получатель). Найти в нём простой путь, включающий максимальное количество рёбер.
-     * Простым считается путь, вершины в котором не повторяются.
-     * Если таких путей несколько, вернуть любой из них.
-     *
-     * Пример:
-     *
-     *      G -- H
-     *      |    |
-     * A -- B -- C -- D
-     * |    |    |    |
-     * E    F -- I    |
-     * |              |
-     * J ------------ K
-     *
-     * Ответ: A, E, J, K, D, C, H, G, B, F, I
-     */
+
+    private static void dfs(Set<Graph.Edge> visited, Graph.Vertex current,Graph.Edge previous, Graph graph) {
+        Map<Graph.Vertex, Graph.Edge> rootEdges = graph.getConnections(current);
+
+        for (Map.Entry<Graph.Vertex, Graph.Edge> keyVal : rootEdges.entrySet()) {
+            Graph.Edge edge = keyVal.getValue();
+            //если дважды проходим по одному и тому же ребру - цикл
+            if (visited.contains(edge) && previous != edge) {
+                throw new IllegalArgumentException();
+            }
+            visited.add(edge);
+            if (previous != edge) dfs(visited, keyVal.getKey(), edge, graph);
+        }
+    }
+        /**
+         * Наидлиннейший простой путь.
+         * Сложная
+         *
+         * Дан граф (получатель). Найти в нём простой путь, включающий максимальное количество рёбер.
+         * Простым считается путь, вершины в котором не повторяются.
+         * Если таких путей несколько, вернуть любой из них.
+         *
+         * Пример:
+         *
+         *      G -- H
+         *      |    |
+         * A -- B -- C -- D
+         * |    |    |    |
+         * E    F -- I    |
+         * |              |
+         * J ------------ K
+         *
+         * Ответ: A, E, J, K, D, C, H, G, B, F, I
+         */
     public static Path longestSimplePath(Graph graph) {
-        throw new NotImplementedError();
-    }
 
+        // Трудоемкость - O(n+v) , n- число вершин, v - число ребер
+        //Ресурсоемкость - O(n) , n- число вершин
+        Set<Graph.Vertex> vertices = graph.getVertices();
+        if (vertices.isEmpty()) return new Path();
+        PriorityQueue<Path> queue = new PriorityQueue<>();
+        vertices.forEach(vertex -> queue.add(new Path(vertex)));
+        Path longest = queue.poll();
+        Path currentPath;
+        while ((currentPath = queue.poll()) != null) {
+            List<Graph.Vertex> currentPathVerticles = currentPath.getVertices();
+            Set<Graph.Vertex> neighbours = graph.getNeighbors(currentPathVerticles.get(currentPathVerticles.size() - 1)); // соседи последнего узла в Path
+            for (Graph.Vertex vertex : neighbours) {
+                if (!currentPath.contains(vertex)) { // проверка , не содержится ли узел в Path
+                    Path newPath = new Path(currentPath, graph, vertex);
+                    queue.add(newPath);
+                    if (newPath.getLength() > longest.getLength())
+                        longest = newPath;
+                }
+            }
+        }
+        return longest;
+    }
 
     /**
      * Балда

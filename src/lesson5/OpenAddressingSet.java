@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.AbstractSet;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 public class OpenAddressingSet<T> extends AbstractSet<T> {
@@ -30,6 +31,8 @@ public class OpenAddressingSet<T> extends AbstractSet<T> {
         storage = new Object[capacity];
     }
 
+    private final Object removed = new Object();
+
     @Override
     public int size() {
         return size;
@@ -40,6 +43,7 @@ public class OpenAddressingSet<T> extends AbstractSet<T> {
      */
     @Override
     public boolean contains(Object o) {
+        int startingIndex = startingIndex(o);
         int index = startingIndex(o);
         Object current = storage[index];
         while (current != null) {
@@ -47,6 +51,10 @@ public class OpenAddressingSet<T> extends AbstractSet<T> {
                 return true;
             }
             index = (index + 1) % capacity;
+             /* если все ячейки таблицы будут заполнены, и мы будем искать объект,
+            которого в таблице нет, произойдёт зацикливание (грубо говоря без условия ниже
+            проверка на наличие элемента (8) в собственном тесте #1 к remove будет длиться вечно)*/
+            if (index == startingIndex) break;
             current = storage[index];
         }
         return false;
@@ -67,7 +75,7 @@ public class OpenAddressingSet<T> extends AbstractSet<T> {
         int startingIndex = startingIndex(t);
         int index = startingIndex;
         Object current = storage[index];
-        while (current != null) {
+        while (current != null && current != removed) {
             if (current.equals(t)) {
                 return false;
             }
@@ -95,8 +103,21 @@ public class OpenAddressingSet<T> extends AbstractSet<T> {
      */
     @Override
     public boolean remove(Object o) {
-        return super.remove(o);
-    }
+        int startingIndex = startingIndex(o);
+        int index = startingIndex;
+        Object current = storage[index];
+        while (current != null) {
+            if (current.equals(o)) {
+                storage[index] = removed;
+                size--;
+                return true;
+            }
+            index = (index + 1) % capacity;
+            if (index == startingIndex) break;
+            current = storage[index];
+        }
+        return false;
+    } // Трудоёмксоть - O(N); Ресурсоёмкость - O(N)
 
     /**
      * Создание итератора для обхода таблицы
@@ -110,8 +131,39 @@ public class OpenAddressingSet<T> extends AbstractSet<T> {
      */
     @NotNull
     @Override
-    public Iterator<T> iterator() {
-        // TODO
-        throw new NotImplementedError();
+    public Iterator<T> iterator() { return new OpenAddressingSetIterator();}
+
+    public class OpenAddressingSetIterator implements Iterator<T> {
+
+        private int index = 0;
+        private int iterations = 0;
+        Object current;
+
+        @Override
+        public boolean hasNext() {
+            return iterations < size;
+        } // Трудоёмкость - O(1); Ресурсоёмкость - O(1)
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public T next() {
+            if (hasNext()) {
+                while (storage[index] == null || storage[index] == removed)
+                    if(++index == capacity) throw new NoSuchElementException();;
+                current = storage[index];
+                index++;
+                iterations++;
+                return (T) current;
+            } else throw new NoSuchElementException();
+        } // Трудоёмкость - O(N); Ресурсоёмкость - O(N)
+
+        @Override
+        public void remove() {
+            if (current != null && current != removed) {
+                storage[index - 1] = removed;
+                iterations--;
+                size--;
+            } else throw new IllegalStateException();
+        } // Трудоёмкость - O(1); Ресурсоёмкость - O(1)
     }
 }

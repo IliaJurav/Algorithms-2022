@@ -2,7 +2,7 @@ package lesson7;
 
 import kotlin.NotImplementedError;
 
-import java.util.List;
+import java.util.*;
 
 @SuppressWarnings("unused")
 public class JavaDynamicTasks {
@@ -19,8 +19,36 @@ public class JavaDynamicTasks {
      * При сравнении подстрок, регистр символов *имеет* значение.
      */
     public static String longestCommonSubSequence(String first, String second) {
-        throw new NotImplementedError();
-    }
+            //Трудоемкость - O(n^2)
+            //Ресурсоемкость - O(m*n), m,n - длины входных строк
+
+            int m = first.length(), n = second.length();
+            int[][] table = new int[m + 1][n + 1];
+            for (int i = m - 1; i >= 0; i--) {
+                for (int j = n - 1; j >= 0; j--) {
+                    if (first.charAt(i) == second.charAt(j)) {
+                        table[i][j] = table[i + 1][j + 1] + 1;
+                    } else {
+                        table[i][j] = Math.max(table[i + 1][j], table[i][j + 1]);
+                    }
+                }
+            }
+
+            StringBuilder answer = new StringBuilder();
+            int i = 0, j = 0;
+            while (i < m && j < n) {
+                if (first.charAt(i) == second.charAt(j)) {
+                    answer.append(first.charAt(i));
+                    i++;
+                    j++;
+                } else if (table[i + 1][j] >= table[i][j + 1])
+                    i++;
+                else
+                    j++;
+            }
+            return answer.toString();
+
+        }
 
     /**
      * Наибольшая возрастающая подпоследовательность
@@ -35,7 +63,33 @@ public class JavaDynamicTasks {
      * В примере ответами являются 2, 8, 9, 12 или 2, 5, 9, 12 -- выбираем первую из них.
      */
     public static List<Integer> longestIncreasingSubSequence(List<Integer> list) {
-        throw new NotImplementedError();
+        //Трудоемкость - O(n^2)
+        //Ресурсоемкость - O(n^2), m - размер list
+        if (list.size() == 0 || list.size() == 1) return list;
+        List<List<Integer>> LIS = new ArrayList<>();
+        for (int i = 0; i < list.size(); i++) {
+            LIS.add(new ArrayList<>());
+        }
+        LIS.get(0).add(list.get(0));
+
+        for (int i = 1; i < list.size(); i++) {
+            for (int j = 0; j < i; j++) {
+                if (list.get(j) < list.get(i) && LIS.get(j).size() > LIS.get(i).size()) {
+                    LIS.set(i, new ArrayList<>(LIS.get(j)));
+                }
+            }
+
+            LIS.get(i).add(list.get(i));
+        }
+
+        int resultIndex = 0;
+        for (int i = 0; i < list.size(); i++) {
+            if (LIS.get(resultIndex).size() < LIS.get(i).size()) {
+                resultIndex = i;
+            }
+        }
+
+        return LIS.get(resultIndex);
     }
 
     /**
